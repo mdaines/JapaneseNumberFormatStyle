@@ -52,6 +52,8 @@ import Testing
         )
 
         #expect(formatStyleSeparator.format(123) == "ひゃく\u{3000}にじゅう\u{3000}さん")
+        #expect(formatStyleSeparator.format(0) == "ゼロ")
+        #expect(formatStyleSeparator.format(-3) == "マイナス\u{3000}さん")
 
         let formatStyleCharacterSeparator = JapaneseKanaNumberFormatStyle<Int>(
             placeSeparator: "\u{3000}",
@@ -59,6 +61,8 @@ import Testing
         )
 
         #expect(formatStyleCharacterSeparator.format(123) == "ひ\u{FEFF}ゃ\u{FEFF}く\u{3000}に\u{FEFF}じ\u{FEFF}ゅ\u{FEFF}う\u{3000}さ\u{FEFF}ん")
+        #expect(formatStyleCharacterSeparator.format(0) == "ゼ\u{FEFF}ロ")
+        #expect(formatStyleCharacterSeparator.format(-3) == "マ\u{FEFF}イ\u{FEFF}ナ\u{FEFF}ス\u{3000}さ\u{FEFF}ん")
     }
 
     @Test func formatZero() async throws {
