@@ -53,7 +53,7 @@ public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
         var group = 0
         var m = value.magnitude
 
-        // Since % arguments may overflow with narrower types, call format group exactly once if the magnitude is small enough.
+        // Since 1_0000 overflows Int8 and similar, call formatGroup exactly once if the magnitude is small enough.
 
         if m < 1_0000 {
             result = formatGroup(group, value: Int(m))
