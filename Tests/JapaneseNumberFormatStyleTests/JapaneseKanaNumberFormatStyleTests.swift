@@ -17,6 +17,12 @@ import Testing
         #expect(UInt8(123).formatted(.japaneseKana) == expected)
     }
 
+    @Test func formattedSeparator() async throws {
+        #expect(123.formatted(.japaneseKana.separator("\u{3000}")) == "ひゃく\u{3000}にじゅう\u{3000}さん")
+        #expect(123.formatted(.japaneseKana.separator("\u{3000}", character: "\u{FEFF}")) == "ひ\u{FEFF}ゃ\u{FEFF}く\u{3000}に\u{FEFF}じ\u{FEFF}ゅ\u{FEFF}う\u{3000}さ\u{FEFF}ん")
+        #expect(123.formatted(.japaneseKana.separator("\u{3000}", character: "\u{FEFF}").separator(nil, character: nil)) == "ひゃくにじゅうさん")
+    }
+
     @Test func format() async throws {
         let formatStyle = JapaneseKanaNumberFormatStyle<Int>()
 
@@ -38,6 +44,21 @@ import Testing
         #expect(formatStyle.format(90) == "きゅうじゅう")
         #expect(formatStyle.format(900) == "きゅうひゃく")
         #expect(formatStyle.format(9000) == "きゅうせん")
+    }
+
+    @Test func separatorOptions() async throws {
+        let formatStyleSeparator = JapaneseKanaNumberFormatStyle<Int>(
+            placeSeparator: "\u{3000}"
+        )
+
+        #expect(formatStyleSeparator.format(123) == "ひゃく\u{3000}にじゅう\u{3000}さん")
+
+        let formatStyleCharacterSeparator = JapaneseKanaNumberFormatStyle<Int>(
+            placeSeparator: "\u{3000}",
+            characterSeparator: "\u{FEFF}"
+        )
+
+        #expect(formatStyleCharacterSeparator.format(123) == "ひ\u{FEFF}ゃ\u{FEFF}く\u{3000}に\u{FEFF}じ\u{FEFF}ゅ\u{FEFF}う\u{3000}さ\u{FEFF}ん")
     }
 
     @Test func formatZero() async throws {

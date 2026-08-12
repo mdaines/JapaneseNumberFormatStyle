@@ -41,15 +41,45 @@ public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<UInt8> 
 }
 
 public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
-    public init() {
+    let placeSeparator: String?
+
+    let characterSeparator: String?
+
+    public init(placeSeparator: String? = nil, characterSeparator: String? = nil) {
+        self.placeSeparator = placeSeparator
+        self.characterSeparator = characterSeparator
+    }
+
+    public func separator(_ place: String?) -> Self {
+        Self(placeSeparator: place, characterSeparator: characterSeparator)
+    }
+
+    public func separator(_ place: String?, character: String?) -> Self {
+        Self(placeSeparator: place, characterSeparator: character)
+    }
+
+    func joinedCharacters(_ characters: String) -> String {
+        if let characterSeparator {
+            characters.map({ String($0) }).joined(separator: characterSeparator)
+        } else {
+            characters
+        }
+    }
+
+    func joinedPlaces(_ places: [String?]) -> String {
+        if let placeSeparator {
+            places.compactMap({ $0 }).map(joinedCharacters).joined(separator: placeSeparator)
+        } else {
+            places.compactMap({ $0 }).joined()
+        }
     }
 
     public func format(_ value: Value) -> String {
         guard value != 0 else {
-            return "ゼロ"
+            return joinedCharacters("ゼロ")
         }
 
-        var result = ""
+        var result: [String?] = []
         var group = 0
         var m = value.magnitude
 
@@ -67,27 +97,29 @@ public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
         }
 
         if value < 0 {
-            result = "マイナス" + result
+            result = ["マイナス"] + result
         }
 
-        return result
+        return joinedPlaces(result)
     }
 }
 
 let numerals = ["", "いち", "に", "さん", "よん", "ご", "ろく", "なな", "はち", "きゅう"]
 
-func formatGroup(_ group: Int, value: Int) -> String {
+func formatGroup(_ group: Int, value: Int) -> [String?] {
     if value == 0 {
-        ""
+        []
     } else {
-        format3((value / 1000) % 10) +
-        format2((value / 100) % 10) +
-        format1((value / 10) % 10) +
-        formatGroupUnit(group, value % 10)
+        [
+            format3((value / 1000) % 10),
+            format2((value / 100) % 10),
+            format1((value / 10) % 10),
+            formatGroupUnit(group, value % 10)
+        ]
     }
 }
 
-func formatGroupUnit(_ group: Int, _ n: Int) -> String {
+func formatGroupUnit(_ group: Int, _ n: Int) -> String? {
     switch group {
     case 0:
         format0(n)
@@ -104,14 +136,14 @@ func formatGroupUnit(_ group: Int, _ n: Int) -> String {
     }
 }
 
-func format0(_ n: Int) -> String {
+func format0(_ n: Int) -> String? {
     numerals[n]
 }
 
-func format1(_ n: Int) -> String {
+func format1(_ n: Int) -> String? {
     switch n {
     case 0:
-        ""
+        nil
     case 1:
         "じゅう"
     case 2..<10:
@@ -121,10 +153,10 @@ func format1(_ n: Int) -> String {
     }
 }
 
-func format2(_ n: Int) -> String {
+func format2(_ n: Int) -> String? {
     switch n {
     case 0:
-        ""
+        nil
     case 1:
         "ひゃく"
     case 3:
@@ -140,10 +172,10 @@ func format2(_ n: Int) -> String {
     }
 }
 
-func format3(_ n: Int) -> String {
+func format3(_ n: Int) -> String? {
     switch n {
     case 0:
-        ""
+        nil
     case 1:
         "せん"
     case 3:
@@ -157,7 +189,7 @@ func format3(_ n: Int) -> String {
     }
 }
 
-func format4(_ n: Int) -> String {
+func format4(_ n: Int) -> String? {
     if n == 0 {
         "まん"
     } else {
@@ -165,7 +197,7 @@ func format4(_ n: Int) -> String {
     }
 }
 
-func format8(_ n: Int) -> String {
+func format8(_ n: Int) -> String? {
     if n == 0 {
         "おく"
     } else {
@@ -173,7 +205,7 @@ func format8(_ n: Int) -> String {
     }
 }
 
-func format12(_ n: Int) -> String {
+func format12(_ n: Int) -> String? {
     if n == 0 {
         "ちょう"
     } else if n == 1 {
@@ -183,7 +215,7 @@ func format12(_ n: Int) -> String {
     }
 }
 
-func format16(_ n: Int) -> String {
+func format16(_ n: Int) -> String? {
     if n == 0 {
         "きょう"
     } else if n == 1 {
