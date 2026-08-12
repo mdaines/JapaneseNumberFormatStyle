@@ -1,0 +1,6 @@
+JapaneseNumberFormatStyle
+=========================
+
+Swift package for formatting numbers in Japanese.
+
+    123.formatted(.japaneseKana) // => "ひゃくにじゅうさん"
