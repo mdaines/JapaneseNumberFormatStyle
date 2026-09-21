@@ -1,82 +1,157 @@
 import Foundation
 
 public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<Int> {
+    /// A style for formatting the Swift default integer type.
     static var japaneseKana: Self { Self() }
 }
 
 public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<Int16> {
+    /// A style for formatting 16-bit signed integers.
     static var japaneseKana: Self { Self() }
 }
 
 public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<Int32> {
+    /// A style for formatting 32-bit signed integers.
     static var japaneseKana: Self { Self() }
 }
 
 public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<Int64> {
+    /// A style for formatting 64-bit signed integers.
+    static var japaneseKana: Self { Self() }
+}
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<Int128> {
+    /// A style for formatting 128-bit signed integers.
     static var japaneseKana: Self { Self() }
 }
 
 public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<Int8> {
+    /// A style for formatting 8-bit signed integers.
     static var japaneseKana: Self { Self() }
 }
 
 public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<UInt> {
+    /// A style for formatting the Swift unsigned integer type.
     static var japaneseKana: Self { Self() }
 }
 
 public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<UInt16> {
+    /// A style for formatting 16-bit unsigned integers.
     static var japaneseKana: Self { Self() }
 }
 
 public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<UInt32> {
+    /// A style for formatting 32-bit unsigned integers.
     static var japaneseKana: Self { Self() }
 }
 
 public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<UInt64> {
+    /// A style for formatting 64-bit unsigned integers.
+    static var japaneseKana: Self { Self() }
+}
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<UInt128> {
+    /// A style for formatting 128-bit unsigned integers.
     static var japaneseKana: Self { Self() }
 }
 
 public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<UInt8> {
+    /// A style for formatting 8-bit unsigned integers.
     static var japaneseKana: Self { Self() }
 }
 
+/// A structure that converts integer values to Japanese kana.
+///
+/// `JapaneseKanaNumberFormatStyle` formats an integer as its spelling in Japanese kana.
+///
+/// All of the Swift standard library's integer types work with this format style. It supports units up to 10^36 (澗, かん), negative integers, and zero.
+///
+/// ### Spelling
+///
+/// This format style attempts to use the most conventional spelling. For example:
+///
+/// Integer | Spelling
+/// --------|---------
+/// 4       | よん
+/// 0       | ゼロ
+/// -12     | マイナスじゅうに
+///
+/// ### Formatting Integers
+///
+/// You can specify `.japaneseKana` when using `formatted(_:)`.
+///
+/// ```swift
+/// 123.formatted(.japaneseKana) // "ひゃくにじゅうさん"
+/// ```
+///
+/// Or when formatting a value in a SwiftUI `Text` view.
+///
+/// ```swift
+/// Text(123, format: .japaneseKana)
+/// ```
+///
+/// When formatting multiple integers, create an instance of `JapaneseKanaNumberFormatStyle`.
+///
+/// ```swift
+/// let kanaFormatStyle = JapaneseKanaNumberFormatStyle<Int>()
+///
+/// kanaFormatStyle.format(8) // "はち"
+/// kanaFormatStyle.format(123) // "ひゃくにじゅうさん"
+/// kanaFormatStyle.format(0) // "ゼロ"
+/// ```
+///
+/// ### Grouping
+///
+/// Formatted numbers can be grouped by place (numeral and unit) to make them easier to read. For example, setting the `.place` grouping behavior with the separator `"\u{3000}"` inserts an ideographic space character between places in the formatted number:
+///
+/// ```swift
+/// let formatStyle = JapaneseKanaNumberFormatStyle<Int>(
+///     grouping: .place(separator: "\u{3000}")
+/// )
+///
+/// kanaFormatStyle.format(123) // "ひゃく　にじゅう　さん"
+/// ```
+
 public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
-    let placeSeparator: String?
+    /// The type the format style uses for configuration settings.
+    public typealias Configuration = JapaneseKanaNumberFormatStyleConfiguration
 
-    let characterSeparator: String?
+    let grouping: Configuration.Grouping
 
-    public init(placeSeparator: String? = nil, characterSeparator: String? = nil) {
-        self.placeSeparator = placeSeparator
-        self.characterSeparator = characterSeparator
+    /// Creates a format style for formatting integers as Japanese kana.
+    public init() {
+        self.grouping = .never
     }
 
-    public func separator(_ place: String?) -> Self {
-        Self(placeSeparator: place, characterSeparator: characterSeparator)
+    /// Creates a format style for formatting integers as Japanese kana that uses the specified grouping.
+    /// - Parameters:
+    ///     - grouping: The grouping to use when formatting values.
+    public init(grouping: Configuration.Grouping) {
+        self.grouping = grouping
     }
 
-    public func separator(_ place: String?, character: String?) -> Self {
-        Self(placeSeparator: place, characterSeparator: character)
-    }
-
-    func joinedCharacters(_ characters: String) -> String {
-        if let characterSeparator {
-            characters.map({ String($0) }).joined(separator: characterSeparator)
-        } else {
-            characters
-        }
+    /// Modifies the format style to use the specified grouping.
+    /// - Parameters:
+    ///     - grouping: The grouping to apply to the format style.
+    ///  - Returns: A format style modified to use the specified grouping.
+    public func grouping(_ grouping: Configuration.Grouping) -> Self {
+        Self(grouping: grouping)
     }
 
     func joinedPlaces(_ places: [String?]) -> String {
-        if let placeSeparator {
-            places.compactMap({ $0 }).map(joinedCharacters).joined(separator: placeSeparator)
+        if let placeSeparator = grouping.placeSeparator {
+            places.compactMap({ $0 }).joined(separator: placeSeparator)
         } else {
             places.compactMap({ $0 }).joined()
         }
     }
 
+    /// Returns a string for the given integer value.
     public func format(_ value: Value) -> String {
         guard value != 0 else {
-            return joinedCharacters("ゼロ")
+            return "ゼロ"
         }
 
         var result: [String?] = []
@@ -101,6 +176,23 @@ public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
         }
 
         return joinedPlaces(result)
+    }
+}
+
+public enum JapaneseKanaNumberFormatStyleConfiguration {
+    /// A structure that a Japanese kana number format style uses to configure grouping.
+    public struct Grouping: Codable, Hashable, Sendable {
+        /// A grouping behavior that inserts the specified separator between places.
+        public static func place(separator: String) -> Self {
+            Self(placeSeparator: separator)
+        }
+
+        /// A grouping behavior that never groups places.
+        public static var never: Self {
+            Self(placeSeparator: nil)
+        }
+
+        let placeSeparator: String?
     }
 }
 
@@ -131,6 +223,16 @@ func formatGroupUnit(_ group: Int, _ n: Int) -> String? {
         format12(n)
     case 4:
         format16(n)
+    case 5:
+        format20(n)
+    case 6:
+        format24(n)
+    case 7:
+        format28(n)
+    case 8:
+        format32(n)
+    case 9:
+        format36(n)
     default:
         preconditionFailure()
     }
@@ -223,4 +325,24 @@ func format16(_ n: Int) -> String? {
     } else {
         numerals[n] + "きょう"
     }
+}
+
+func format20(_ n: Int) -> String? {
+    numerals[n] + "がい"
+}
+
+func format24(_ n: Int) -> String? {
+    numerals[n] + "じょ"
+}
+
+func format28(_ n: Int) -> String? {
+    numerals[n] + "じょう"
+}
+
+func format32(_ n: Int) -> String? {
+    numerals[n] + "こう"
+}
+
+func format36(_ n: Int) -> String? {
+    numerals[n] + "かん"
 }
