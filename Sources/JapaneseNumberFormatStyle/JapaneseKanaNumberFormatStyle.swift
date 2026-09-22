@@ -140,21 +140,13 @@ public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
         Self(grouping: grouping)
     }
 
-    func joinedPlaces(_ places: [String?]) -> String {
-        if let placeSeparator = grouping.placeSeparator {
-            places.compactMap({ $0 }).joined(separator: placeSeparator)
-        } else {
-            places.compactMap({ $0 }).joined()
-        }
-    }
-
     /// Returns a string for the given integer value.
     public func format(_ value: Value) -> String {
         guard value != 0 else {
             return "ゼロ"
         }
 
-        var result: [String?] = []
+        var result: [String] = []
         var group = 0
         var m = value.magnitude
 
@@ -175,7 +167,7 @@ public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
             result = ["マイナス"] + result
         }
 
-        return joinedPlaces(result)
+        return result.joined(separator: grouping.placeSeparator ?? "")
     }
 }
 
@@ -198,17 +190,28 @@ public enum JapaneseKanaNumberFormatStyleConfiguration {
 
 let numerals = ["", "いち", "に", "さん", "よん", "ご", "ろく", "なな", "はち", "きゅう"]
 
-func formatGroup(_ group: Int, value: Int) -> [String?] {
-    if value == 0 {
-        []
-    } else {
-        [
-            format3((value / 1000) % 10),
-            format2((value / 100) % 10),
-            format1((value / 10) % 10),
-            formatGroupUnit(group, value % 10)
-        ]
+func formatGroup(_ group: Int, value: Int) -> [String] {
+    guard value != 0 else { return [] }
+
+    var result: [String] = []
+
+    if let place = format3((value / 1000) % 10) {
+        result.append(place)
     }
+
+    if let place = format2((value / 100) % 10) {
+        result.append(place)
+    }
+
+    if let place = format1((value / 10) % 10) {
+        result.append(place)
+    }
+
+    if let place = formatGroupUnit(group, value % 10) {
+        result.append(place)
+    }
+
+    return result
 }
 
 func formatGroupUnit(_ group: Int, _ n: Int) -> String? {
