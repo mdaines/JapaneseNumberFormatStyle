@@ -160,7 +160,7 @@ public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
 
         // Since 1_0000 overflows Int8 and similar, call formatGroup exactly once if the magnitude is small enough.
 
-        if m < 1_0000 {
+        if m < Int(1_0000) {
             result = formatGroup(group, value: Int(m))
         } else {
             while m > 0 {
