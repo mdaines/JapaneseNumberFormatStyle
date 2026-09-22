@@ -118,32 +118,27 @@ public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
     /// The type the format style uses for configuration settings.
     public typealias Configuration = JapaneseKanaNumberFormatStyleConfiguration
 
-    let grouping: Configuration.Grouping
+    var config: Configuration.Collection = Configuration.Collection()
 
     /// Creates a format style for formatting integers as Japanese kana.
     public init() {
-        self.grouping = .never
     }
 
     /// Creates a format style for formatting integers as Japanese kana that uses the specified grouping.
     /// - Parameters:
     ///     - grouping: The grouping to use when formatting values.
-    public init(grouping: Configuration.Grouping) {
-        self.grouping = grouping
+    public func grouping(_ grouping: Configuration.Grouping) -> Self {
+        var new = self
+        new.config.grouping = grouping
+        return new
     }
 
-    /// Modifies the format style to use the specified grouping.
-    /// - Parameters:
-    ///     - grouping: The grouping to apply to the format style.
-    ///  - Returns: A format style modified to use the specified grouping.
-    public func grouping(_ grouping: Configuration.Grouping) -> Self {
-        Self(grouping: grouping)
-    }
+    typealias Vocabulary = JapaneseKanaNumberFormatStyleVocabulary
 
     /// Returns a string for the given integer value.
     public func format(_ value: Value) -> String {
         guard value != 0 else {
-            return "ゼロ"
+            return Vocabulary.zero
         }
 
         var result: [String] = []
@@ -164,195 +159,50 @@ public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
         }
 
         if value < 0 {
-            result = ["マイナス"] + result
+            result = [Vocabulary.minus] + result
         }
 
-        return result.joined(separator: grouping.placeSeparator ?? "")
+        return result.joined(separator: config.grouping?.placeSeparator ?? "")
     }
-}
 
-public enum JapaneseKanaNumberFormatStyleConfiguration {
-    /// A structure that a Japanese kana number format style uses to configure grouping.
-    public struct Grouping: Codable, Hashable, Sendable {
-        /// A grouping behavior that inserts the specified separator between places.
-        public static func place(separator: String) -> Self {
-            Self(placeSeparator: separator)
+    func formatGroup(_ group: Int, value: Int) -> [String] {
+        guard value != 0 else { return [] }
+
+        var result: [String] = []
+
+        if let place = Vocabulary.format3((value / 1000) % 10) {
+            result.append(place)
         }
 
-        /// A grouping behavior that never groups places.
-        public static var never: Self {
-            Self(placeSeparator: nil)
+        if let place = Vocabulary.format2((value / 100) % 10) {
+            result.append(place)
         }
 
-        let placeSeparator: String?
-    }
-}
+        if let place = Vocabulary.format1((value / 10) % 10) {
+            result.append(place)
+        }
 
-let numerals = ["", "いち", "に", "さん", "よん", "ご", "ろく", "なな", "はち", "きゅう"]
+        if let place = formatGroupUnit(group, value % 10) {
+            result.append(place)
+        }
 
-func formatGroup(_ group: Int, value: Int) -> [String] {
-    guard value != 0 else { return [] }
-
-    var result: [String] = []
-
-    if let place = format3((value / 1000) % 10) {
-        result.append(place)
+        return result
     }
 
-    if let place = format2((value / 100) % 10) {
-        result.append(place)
+    func formatGroupUnit(_ group: Int, _ n: Int) -> String? {
+        switch group {
+        case 0: Vocabulary.format0(n)
+        case 1: Vocabulary.format4(n)
+        case 2: Vocabulary.format8(n)
+        case 3: Vocabulary.format12(n)
+        case 4: Vocabulary.format16(n)
+        case 5: Vocabulary.format20(n)
+        case 6: Vocabulary.format24(n)
+        case 7: Vocabulary.format28(n)
+        case 8: Vocabulary.format32(n)
+        case 9: Vocabulary.format36(n)
+        default:
+            preconditionFailure()
+        }
     }
-
-    if let place = format1((value / 10) % 10) {
-        result.append(place)
-    }
-
-    if let place = formatGroupUnit(group, value % 10) {
-        result.append(place)
-    }
-
-    return result
-}
-
-func formatGroupUnit(_ group: Int, _ n: Int) -> String? {
-    switch group {
-    case 0:
-        format0(n)
-    case 1:
-        format4(n)
-    case 2:
-        format8(n)
-    case 3:
-        format12(n)
-    case 4:
-        format16(n)
-    case 5:
-        format20(n)
-    case 6:
-        format24(n)
-    case 7:
-        format28(n)
-    case 8:
-        format32(n)
-    case 9:
-        format36(n)
-    default:
-        preconditionFailure()
-    }
-}
-
-func format0(_ n: Int) -> String? {
-    switch n {
-    case 0:
-        nil
-    case 1..<10:
-        numerals[n]
-    default:
-        preconditionFailure()
-    }
-}
-
-func format1(_ n: Int) -> String? {
-    switch n {
-    case 0:
-        nil
-    case 1:
-        "じゅう"
-    case 2..<10:
-        numerals[n] + "じゅう"
-    default:
-        preconditionFailure()
-    }
-}
-
-func format2(_ n: Int) -> String? {
-    switch n {
-    case 0:
-        nil
-    case 1:
-        "ひゃく"
-    case 3:
-        "さんびゃく"
-    case 6:
-        "ろっぴゃく"
-    case 8:
-        "はっぴゃく"
-    case 2, 4, 5, 7, 9:
-        numerals[n] + "ひゃく"
-    default:
-        preconditionFailure()
-    }
-}
-
-func format3(_ n: Int) -> String? {
-    switch n {
-    case 0:
-        nil
-    case 1:
-        "せん"
-    case 3:
-        "さんぜん"
-    case 8:
-        "はっせん"
-    case 2, 4, 5, 6, 7, 9:
-        numerals[n] + "せん"
-    default:
-        preconditionFailure()
-    }
-}
-
-func format4(_ n: Int) -> String? {
-    if n == 0 {
-        "まん"
-    } else {
-        numerals[n] + "まん"
-    }
-}
-
-func format8(_ n: Int) -> String? {
-    if n == 0 {
-        "おく"
-    } else {
-        numerals[n] + "おく"
-    }
-}
-
-func format12(_ n: Int) -> String? {
-    if n == 0 {
-        "ちょう"
-    } else if n == 1 {
-        "いっちょう"
-    } else {
-        numerals[n] + "ちょう"
-    }
-}
-
-func format16(_ n: Int) -> String? {
-    if n == 0 {
-        "きょう"
-    } else if n == 1 {
-        "いっきょう"
-    } else {
-        numerals[n] + "きょう"
-    }
-}
-
-func format20(_ n: Int) -> String? {
-    numerals[n] + "がい"
-}
-
-func format24(_ n: Int) -> String? {
-    numerals[n] + "じょ"
-}
-
-func format28(_ n: Int) -> String? {
-    numerals[n] + "じょう"
-}
-
-func format32(_ n: Int) -> String? {
-    numerals[n] + "こう"
-}
-
-func format36(_ n: Int) -> String? {
-    numerals[n] + "かん"
 }

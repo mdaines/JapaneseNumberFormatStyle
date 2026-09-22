@@ -41,9 +41,8 @@ import Testing
     }
 
     @Test func grouping() async throws {
-        let formatStyle = JapaneseKanaNumberFormatStyle<Int>(
-            grouping: .place(separator: "\u{3000}")
-        )
+        let formatStyle = JapaneseKanaNumberFormatStyle<Int>()
+            .grouping(.place(separator: "\u{3000}"))
 
         #expect(formatStyle.format(123) == "ひゃく\u{3000}にじゅう\u{3000}さん")
         #expect(formatStyle.format(101) == "ひゃく\u{3000}いち")
