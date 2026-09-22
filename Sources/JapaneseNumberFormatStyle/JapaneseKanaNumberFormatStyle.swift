@@ -242,7 +242,14 @@ func formatGroupUnit(_ group: Int, _ n: Int) -> String? {
 }
 
 func format0(_ n: Int) -> String? {
-    numerals[n]
+    switch n {
+    case 0:
+        nil
+    case 1..<10:
+        numerals[n]
+    default:
+        preconditionFailure()
+    }
 }
 
 func format1(_ n: Int) -> String? {
