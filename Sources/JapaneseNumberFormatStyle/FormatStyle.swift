@@ -83,7 +83,8 @@ public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<UInt8> 
 /// You can specify `.japaneseKana` when using `formatted(_:)`.
 ///
 /// ```swift
-/// 123.formatted(.japaneseKana) // "ひゃくにじゅうさん"
+/// let formattedNumber = 123.formatted(.japaneseKana)
+/// // formattedNumber is "ひゃくにじゅうさん".
 /// ```
 ///
 /// Or when formatting a value in a SwiftUI `Text` view.
@@ -107,11 +108,11 @@ public extension FormatStyle where Self == JapaneseKanaNumberFormatStyle<UInt8> 
 /// Formatted numbers can be grouped by place (numeral and unit) to make them easier to read. For example, setting the `.place` grouping behavior with the separator `"\u{3000}"` inserts an ideographic space character between places in the formatted number:
 ///
 /// ```swift
-/// 123.formatted(
+/// let formattedNumber = 123.formatted(
 ///     .japaneseKana
 ///     .grouping(.place(separator: "\u{3000}"))
 /// )
-/// // "ひゃく　にじゅう　さん"
+/// // formattedNumber is "ひゃく　にじゅう　さん".
 /// ```
 
 public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
