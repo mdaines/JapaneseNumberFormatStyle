@@ -73,9 +73,10 @@ public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
     public init() {
     }
 
-    /// Creates a format style for formatting integers as Japanese kana that uses the specified grouping.
+    /// Modifies the format style to use the specified grouping.
     /// - Parameters:
     ///     - grouping: The grouping to use when formatting values.
+    /// - Returns: A Japanese kana format style modified to use the specified grouping.
     public func grouping(_ grouping: Configuration.Grouping) -> Self {
         var new = self
         new.config.grouping = grouping
@@ -84,7 +85,9 @@ public struct JapaneseKanaNumberFormatStyle<Value: BinaryInteger>: FormatStyle {
 
     typealias Vocabulary = JapaneseKanaNumberFormatStyleVocabulary
 
-    /// Returns a string for the given integer value.
+    /// Formats an integer using this style.
+    /// - Parameter value: The integer to format.
+    /// - Returns: The Japanese kana spelling of the given value.
     public func format(_ value: Value) -> String {
         guard value != 0 else {
             return Vocabulary.zero
